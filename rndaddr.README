@@ -1,0 +1,32 @@
+rndaddr - generate random v4/v6/mac addresses
+
+rndaddr generates random addresses for you.
+
+It can be used inside scripts that require a new completely random address assigned to interface,
+vpn client or as new dhcp address given out.
+
+rndaddr supports v4, v6 and mac addresses generation. For v6, additional eui64 mode is supported.
+For mac addresses it supports certain predefined hardware patterns.
+
+As usual, getting random numbers is hard, so I used /dev/urandom for that, with fallback to
+random(). /dev/urandom is widespread and simple interface across current Unixes, with non-relevant
+exceptions. For them (and for alien platforms) a fallback is implemented.
+
+Usage:
+
+Program accepts command line args:
+
+-4: generate ipv4 address
+-6: generate ipv6 address
+-m: generate mac address
+-u: (ipv6) embed eui64 (random mac address) into ipv6 address
+-M alias: (mac) use pattern defined as alias
+
+Program accepts CIDR addresses for v4 and v6. For mac, it accepts address in form of
+"x:x:x:x:x:x.y", where "x:x:x:x:x:x" is base mac address, and ".y" is how many bits to randomise.
+
+Without any address specified it's required to specify address type, and program will generate
+completely random address not belonging to any subnet. Otherwise, address type can be omitted:
+the program will decompose and recognise address type in given address.
+
+Examples are given in program help banner.

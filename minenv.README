@@ -1,0 +1,15 @@
+minenv - clear environment, populate with dummy values then run program
+
+minenv clears environment, populates it with these:
+
+	HOME=/
+	SHELL=/bin/sh
+	UID=0
+	USER=root
+	PATH=/bin
+
+then runs program specified with this environment.
+
+This program does not have any meaning. For some reason I written it. I could use `env` better.
+
+It's useful in init scripts though.

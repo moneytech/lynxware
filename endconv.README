@@ -1,0 +1,10 @@
+endconv - file endianness converter
+a simple wrapper to host libc's endian functions
+
+Usage:
+
+The program distinguishes modes of operation by process name.
+
+To use the program, copy executable, and create a set of hard/symlinks to it: htobe16, htole16, htobe32, htole32, htobe64, htole64, be16toh, le16toh, be32toh, le32toh, be64toh, le64toh.
+
+Then you can use the program by running these links with input and output files specified in cmdline.

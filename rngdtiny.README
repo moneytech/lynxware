@@ -1,0 +1,17 @@
+rngdtiny - tiny rngd(8) replacement
+
+rngd from rng-tools is bloated. This is much more lightweight replacement.
+
+It was tested on android. It's static arm32 version with musl was 13k.
+
+Now I don't use it. But I hope it can be used.
+
+Usage:
+
+Program accepts arguments:
+
+-o dev: output random device
+-r dev: source random device (must be more random than output)
+-s num: byte block at a iteration
+-W num: stop filling when more than num bytes available
+-T delay: delay between reads in microseconds

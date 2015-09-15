@@ -1,0 +1,21 @@
+fdfd - file descriptor renumerator
+
+fdfd renumbers given set of fds into other set, then runs specified cmdline.
+
+For example:
+
+	fdfd 3,4,5 10,11,12 prog -ab -c arg
+
+will run "prog -ab -c arg" and input set of fds "3,4,5" will be renumbered and visible to program
+as "10,11,12".
+
+If input environment contained more fds, they will stay untouched. If nonexistent fds were
+specified, they will be ignored.
+
+Program works with dup2 syscall.
+
+Program closes all file descriptors that were specified to renumerate (both input and output),
+before or during renumeration.
+
+File descriptor sets given to program must be of equal size (of fds), if more fds given at input or
+output, then behavior is undefined.

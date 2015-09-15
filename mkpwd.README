@@ -1,0 +1,33 @@
+mkpwd - random password generator
+
+There are many password generation tools around. Some of them can be run even from shell directly.
+But I written this version myself.
+
+Password generator is a tool which properties you should know. So such a tool must be simple to
+review or you should write your own.
+
+This even fastest in terms of mass random strings generation. Shell versions can't generate 100
+random strings (passwords) for less than half a second!
+
+It uses /dev/urandom. If it can't open /dev/urandom, it falls back to random().
+
+Usage:
+
+mkpwd can generate various strings. It's mode of operation is specified in cmdline. First argument
+is number of characters output. Then mode number follows. Third filter argument is used with mode 5.
+
+When mode is unspecified, then default 0 mode is used. The number of characters is mandatory.
+
+Modes:
+
+0: print chars from a-zA-Z0-9 array
+1: print all printable ascii chars
+2: same as 0 but with space
+3: same as 1 but with space
+4: output every char, without filtering
+5: supply own array filter (specify in [filter])
+6: (reserved, now ignored)
+7: print from base64 range
+8: print from [0-9] array (dec)
+9: print from [0-f] array (hex)
+10: print from [0-F] array (upper hex)

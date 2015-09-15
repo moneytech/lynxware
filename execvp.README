@@ -1,0 +1,18 @@
+execvp - a wrapper around execvp()
+
+execvp permits you to change process name (argv[0]) by running it through, and specifying arguments
+of course.
+
+"exec" builtin of most shells does not permit you to specify process name. Only bash can, but it's not widespread and that's extension (and extensions are bad). Just example:
+
+	exec /bin/sh
+
+will only run /bin/sh and will not put it into login mode when you want that, and want to simulate real login without specifying "-l" option.
+
+But with execvp, things more simpler:
+
+	exec execvp /bin/sh -sh
+
+Here, /bin/sh is full path to executable to run and "-sh" is zeroth argument to process. You can specify additional arguments of course beyond.
+
+I think this program should be in every Unix.

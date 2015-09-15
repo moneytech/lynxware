@@ -1,0 +1,7 @@
+netaddr - test if given address is within subnet
+
+netaddr takes two arguments: subnet, defined in CIDR form and address to test if it belongs to it.
+Both v4 and v6 addresses are supported and parsed properly.
+
+netaddr can take additional "-v" argument. In this case, it prints result in logic form.
+Without it, it will return a status code easily parsed by shell.

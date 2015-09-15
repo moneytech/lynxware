@@ -1,0 +1,44 @@
+setugid - privilege dropper helper
+
+setugid drops privileges to specified ones then runs given cmdline.
+
+This program will permit you:
+
+- Run a cmdline as another user (usually less privileged)
+- Select your own group id or list before running cmdline
+- Set or unset environment variables
+- Simulate a login shell as another user
+
+This program is superuser tool and does not do any authentication! This is NOT a su or sudo
+replacement! Only superuser can use this tool successfully.
+
+If you want a superior tool which does authentication and was based on this code - look at super.
+
+Usage:
+
+Program accepts command line options:
+
+-u uid/user: setuid to this user
+-U euid/user: seteuid to this user
+-g gid/group: setgid to this group
+-G egid/group: setegid to this group
+-s gid,group,gid,...: setgroups to this group list
+-S gid,-group,-gid,...: setgroups to caller's list, adding or removing (-) groups
+-a altargv0: set program name (argv[0])
+-A: place a dash before program name
+-e VAR=VAL: set environment variable
+-E: start with empty environment (with following -e - adding variables to empty environment)
+-i: start a login shell (same as -AE, but sets basic environment and cmdline is not needed)
+-I: like -i, but always use /bin/sh as login shell (to override "/bin/false" and same things
+from passwd db)
+-P: preserve most of current environment (usable only with -i)
+-D: chdir to user directory defined in passwd db
+-v: report any failures (but fatal are reported anyway)
+
+Warning:
+
+By default, if only user specified, the group and group list is taken default from passwd db.
+ALWAYS check target permissions by test running an id(1) tool as target user!
+
+The tool MUST NOT be marked as setuid, or it will give anyone the permission to setuid to owner
+of that executable file. If root (zero uid), then this results in disaster.

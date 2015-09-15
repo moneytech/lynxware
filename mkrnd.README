@@ -1,0 +1,7 @@
+mkrnd - generate random number
+
+mkrnd takes two arguments: start and end, defining range from which random number is generated.
+It can accept positive and negative 64 bit numbers.
+
+mkrnd takes random numbers from /dev/urandom. If it can't open /dev/urandom, it will fall back
+to gettimeofday() + random() approach.

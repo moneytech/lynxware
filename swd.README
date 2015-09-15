@@ -1,0 +1,10 @@
+swd - chdirs into directory, then runs cmdline
+
+swd just goes to specified directory and runs cmdline from there. Nothing complex.
+
+swd is usually can be implemented with /bin/sh -c 'cd /dir; exec ...', but more simpler and not
+dealing with quotes in shells. It also handy enough.
+
+swd is implanted into my tools such as super as a separate option.
+
+Without additional software, swd should be in every Unix system.

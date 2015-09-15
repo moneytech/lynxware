@@ -1,0 +1,51 @@
+huntbins - check file or directory for suspicious binaries
+
+huntbins searches directory, checking all files inside, for binaries. It's a way of finding hidden
+binaries inside packages with source code. Sometimes programmers leave binary-only code just because
+they want to make your life easier, or they can't for some reason give you source code for it.
+
+huntbins can check files, directories with files and subdirs, archives of common Unix formats and
+some archives from other systems. It currently can find ELF, PE and Mach-O binaries, their many
+possible object code, compiled scripts, binary translations, compiled VM data, binary-only maps
+and code for Quake game and many other formats. It also supports overriding internal patterns, so
+you can use huntbins when you want to search directory for your own defined data types (for example,
+find all computer images like jpegs and pngs)
+
+huntbins works with libmagic. It requires data types being predefined to be recognisable by
+libmagic. The check is performed by comparing typestring returned by libmagic with predefined
+regexp pattern. Most typestrings are easily recognisable and unique, although libmagic makes
+mistakes sometimes. Checks for hostile executable formats often successful.
+
+Installation:
+
+Compile with: gcc huntbins.c -o huntbins -lmagic
+
+Usage:
+
+Program accepts a list of files or directories to check.
+Without any, it will check current directory.
+
+Program accepts following command line arguments:
+
+-a: try to look into archives (this maybe dangerous)
+-U: looks for 'data' files (pattern returned by libmagic is 'data')
+-N: resets all predefined patterns, permits you to use only your own
+-i: all patterns becomes case insensitive
+-I: reverse -i
+-bepBEP: load patterns from file: 'b' - for binaries, 'e' - for file extensions,
+'B' - for binaries exceptions, 'E' - for file extensions exceptions,
+'p' - pair patterns (odd lines: file extensions, even lines: matching pattern)
+'P' - pair patterns exceptions, order is same as for -p
+-C: combine predefined and user defined patterns, opposite to -N
+-o outfile: write found file names to outfile
+-z: look into compressed files too (not archives)
+-l mgcdb: load this magic database instead of default
+-u: remove (unlink) found files
+-q: be quiet: do not output (or write) any file names, only return status code
+
+Program returns these status codes:
+
+0: success, no binaries found
+1: failure, there are binaries laying inside
+2: directory, filename or something from command line was not found
+3: wrong parameters specified

@@ -1,0 +1,42 @@
+gmsgbox - display messages on screen from command line
+
+gmsgbox allows you to create messageboxes similar to MSWindows MessageBox.
+
+Although missing more functionality than it's analogs like zenity and gdialog,
+it's more lightweight and does not pull-in much code inside, using only gtk2 library calls.
+
+Installation:
+
+Compile with: gcc gmsgbox.c `pkg-config --cflags gtk+-2.0` -o gmsgbox `pkg-config --libs gtk+-2.0`
+
+Usage:
+
+gmsgbox accepts command line arguments:
+
+-N: type of dialog "by default"
+-i: information dialog
+-w: warning dialog
+-q: question dialog
+-e: error dialog
+-n: remove all buttons
+-y: yes/no buttons
+-k: OK button
+-c: Cancel button
+-C: Close button
+-b id:text: define your own button
+-d id: set button with id default
+-z id: return zero status when button with this id is pressed
+
+After these options user should specify "title" and "text".
+
+Program also "listens" to two environment variables GMSGBOX_TITLE and GMSGBOX_TEXT. They override
+title and/or text specified in command line. Since in many systems command line options can be
+visible to anyone, but environment is usually visible to process owner or even process itself,
+it's a good way to display some secret information.
+
+Program returns id of pressed button. Note that all ids inside gtk2 are negative numbers, and
+returned id is without negative sign. Program returns 0 if id defined with -z and id of button are
+equal. Program returns 2 if command line parameters are wrong. You should not define a button with
+id 2 in this case. gtk2 does not use id 2.
+
+Works with gtk2. Compatibility with gtk3 is untested.

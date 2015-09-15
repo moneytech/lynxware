@@ -1,0 +1,16 @@
+fork - universal daemonizer
+
+fork forces program to become a daemon. It removes possibility to write to terminal as well as
+detaches program from it, runs several functions that assign it individual identity, and uses pipe
+to monitor the status: the program was found to be run or executable does not exist.
+
+After successful launch, fork just exits and does not write anything. The return status is zero.
+
+If no program was found, the return is 127 and status message is written. If program is denied
+to be launched, then return is 126.
+
+The program itself is a wrapper around internal function which does everything as program, but
+can be integrated into any other Unix code. The (possibly) same function is BSD's daemon(), but
+regarding to the process itself.
+
+I think this program should be in every Unix.

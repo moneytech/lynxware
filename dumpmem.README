@@ -1,0 +1,12 @@
+dumpmem - copy process memory without terminating it.
+
+This program is Linux specific - it will not work on any other Unix. It just uses Linux pseudofiles. There is no more magic inside it.
+
+Usage:
+
+dumpmem accepts several command line arguments. Without them, specifying process id is sufficient, and memory dump will be written to stdout.
+
+-i addr: include only these address ranges
+-x addr: dump anything but data from these regions
+-s: dump only executable and it's mappings
+-o outfile: write output to outfile
