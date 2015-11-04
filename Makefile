@@ -13,5 +13,8 @@ gmsgbox: gmsgbox.c
 huntbins: huntbins.c
 	$(CC) $(CFLAGS) -o $@ $< -lmagic
 
+zdiv: zdiv.c
+	$(CC) $(CFLAGS) -O2 -o $@ $<
+
 clean:
 	rm -f $(PROGS)
