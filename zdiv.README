@@ -1,0 +1,9 @@
+zdiv - compute dividors of a number
+
+zdiv will compute all dividors for a number for you.
+It's useful when you want to determine which block size is largest for a non-round file or
+something like that. Or if you just want to test the number is not prime :)
+
+Usage: zdiv max_dividor number_to_search
+
+Example: zdiv 65536 412083 | tail -n1 # should give you 58869
