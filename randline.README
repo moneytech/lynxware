@@ -1,0 +1,12 @@
+randline - print random lines from multiple files
+
+randline will emit random line from a line stream formed by reading from either stdin or
+from file, or from multiple files. When multiple files are specified, they first concatenated
+into program memory, then a random line is selected.
+
+randline reads everything into memory, so it's suitable for text files, but not big sized ones.
+
+Behavior with binary stream is undefined.
+
+randline can emit more than one random line. Number of lines to output can be specified
+with -n numlines option. If -z option is specified, then randline will ignore empty lines.
