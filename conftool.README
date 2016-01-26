@@ -1,0 +1,21 @@
+conftool - a simple program to get and put persistent configuration variables
+
+conftool can be used to store configuration data in an easy way: put data from
+command line, and get data just by querying the name. There is also a quiet
+option which disables error messages output (useful in scripts). It returns
+zero of query/store/deletion succeeded, and some other value if not (not exist,
+or access is denied).
+
+conftool cannot be used as is: it needs to be called through super or similar
+tool to write to root owned directory. The default configuration directory is
+/etc/conf. Without super guard, conftool will permit anyone to write anything,
+and that's probably will be disasterous. Therefore, to call conftool from
+script, one will write something like:
+
+	if super conftool -qr variable; then echo variable is set; fi
+
+for a zero sized variable.
+
+TODO:
+
+conftool was written quickly and was not tested well. It's a work in progress.
