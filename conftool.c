@@ -14,6 +14,8 @@
 #define OPT_WRITE 2
 #define OPT_REMOVE 3
 
+#define ifopt { if (opt) usage(); }
+
 static int quiet;
 static char B[PATH_MAX];
 
@@ -54,9 +56,9 @@ int main(int argc, char **argv)
 	opterr = 0;
 	while ((c = getopt(argc, argv, "qrwd")) != -1) {
 		switch (c) {
-			case 'r': opt = OPT_READ; break;
-			case 'w': opt = OPT_WRITE; break;
-			case 'd': opt = OPT_REMOVE; break;
+			case 'r': ifopt; opt = OPT_READ; break;
+			case 'w': ifopt; opt = OPT_WRITE; break;
+			case 'd': ifopt; opt = OPT_REMOVE; break;
 			case 'q': quiet = 1; break;
 			default: usage(); break;
 		}
