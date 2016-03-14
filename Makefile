@@ -16,5 +16,8 @@ huntbins: huntbins.c
 zdiv: zdiv.c
 	$(CC) $(CFLAGS) -O2 -o $@ $<
 
+unclaws: unclaws.c
+	@echo See unclaws.README.
+
 clean:
 	rm -f $(PROGS)
