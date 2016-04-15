@@ -2,7 +2,11 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
+#include <sys/time.h>
 #include <gtk/gtk.h>
+
+typedef void (*sighandler_t)(int);
 
 #define _s(x) (sizeof(x)/sizeof(*x))
 
@@ -18,13 +22,20 @@ static int mtype = GTK_MESSAGE_INFO, btype = GTK_BUTTONS_OK;
 static char *title = "", *text = "", *p;
 static size_t l;
 static int def, z, r;
+static suseconds_t timeout;
+
+static void timeouthandl(int unused)
+{
+	exit(-1);
+}
 
 static void usage(void)
 {
-	printf("usage: gmsgbox [-b id:btntxt] [-d id] [-z id] [-NiwqenykKcC] [title] [text]\n\n");
+	printf("usage: gmsgbox [-b id:btntxt] [-d id] [-z id] [-t time] [-NiwqenykKcC] [title] [text]\n\n");
 	printf("  -b id:btntxt: add new button with btntxt on it and returning id\n");
 	printf("  -d id: set default button to id it returns\n");
 	printf("  -z id: return 0 on this id\n");
+	printf("  -t time: set timeout (in microseconds) after which dialog will close\n");
 	printf("  -N: set dialog type to 0\n");
 	printf("  -i: set dialog type to INFO\n");
 	printf("  -w: set dialog type to WARN\n");
@@ -49,9 +60,10 @@ static void usage(void)
 int main(int argc, char **argv)
 {
 	int c;
+	struct itimerval timer;
 
 	opterr = 0;
-	while ((c = getopt(argc, argv, "b:d:z:NiwqenykKcC")) != -1) {
+	while ((c = getopt(argc, argv, "b:d:z:t:NiwqenykKcC")) != -1) {
 		switch (c) {
 			case 'b':
 				if (btnsidx > _s(btns)) break;
@@ -71,6 +83,9 @@ int main(int argc, char **argv)
 				break;
 			case 'z':
 				z = atoi(optarg);
+				break;
+			case 't':
+				timeout = (useconds_t)atol(optarg);
 				break;
 			case 'N':
 				mtype = 0;
@@ -115,6 +130,13 @@ int main(int argc, char **argv)
 	if (getenv("GMSGBOX_TITLE")) title = getenv("GMSGBOX_TITLE");
 	if (getenv("GMSGBOX_TEXT")) text = getenv("GMSGBOX_TEXT");
 
+	if (timeout) {
+		signal(SIGALRM, &timeouthandl);
+		memset(&timer, 0, sizeof(struct itimerval));
+		timer.it_value.tv_sec = (timeout / 1000000);
+		timer.it_value.tv_usec = timeout - (timer.it_value.tv_sec * 1000000);
+		setitimer(ITIMER_REAL, &timer, NULL);
+	}
 	gtk_init(&argc, &argv);
 	dlg = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL, mtype, btype, title);
 	gtk_window_set_title(GTK_WINDOW(dlg), title);

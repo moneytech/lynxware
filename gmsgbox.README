@@ -26,6 +26,7 @@ gmsgbox accepts command line arguments:
 -b id:text: define your own button
 -d id: set button with id default
 -z id: return zero status when button with this id is pressed
+-t time: set timeout (in microseconds) after which dialog will close
 
 After these options user should specify "title" and "text".
 
@@ -36,7 +37,6 @@ it's a good way to display some secret information.
 
 Program returns id of pressed button. Note that all ids inside gtk2 are negative numbers, and
 returned id is without negative sign. Program returns 0 if id defined with -z and id of button are
-equal. Program returns 2 if command line parameters are wrong. You should not define a button with
-id 2 in this case. gtk2 does not use id 2.
+equal. Program returns 2 if command line parameters are wrong. Program returns -1 (255 in shell) if timeout value was set and dialog expired. You should not define a button with these return values in this case. Note that gtk2 does not use id 2 internally.
 
 Works with gtk2. Compatibility with gtk3 is untested.
