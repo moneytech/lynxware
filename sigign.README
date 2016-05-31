@@ -1,0 +1,9 @@
+sigign - force ignore signals.
+
+sigign prevents it's executee to receive some non critical signals which can be ignored: HUP, TERM, INT and others.
+Note: you cannot ignore KILL and STOP (of course!), and you cannot ignore SEGV and other fatal signals on sane systems.
+
+To ignore specific signal, you should run this program, specify numeric signal values to ignore
+(see "kill -l"), one per each argv cell. For example, to ignore INT and TERM on Linux:
+
+	sigign 2 15 cmdline ...
