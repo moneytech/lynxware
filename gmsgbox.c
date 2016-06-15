@@ -73,6 +73,7 @@ int main(int argc, char **argv)
 					l = strlen(p);
 					btns[btnsidx].str = malloc(l+1);
 					if (!btns[btnsidx].str) break;
+					memset(btns[btnsidx].str, 0, l+1);
 					strncpy(btns[btnsidx].str, p, l);
 					btns[btnsidx].id = -atoi(optarg);
 					btnsidx++;
