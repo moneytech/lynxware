@@ -16,6 +16,15 @@ libmagic. The check is performed by comparing typestring returned by libmagic wi
 regexp pattern. Most typestrings are easily recognisable and unique, although libmagic makes
 mistakes sometimes. Checks for hostile executable formats often successful.
 
+Important:
+
+huntbins patterns are collected when using one - and only one version of file(1) package, 5.10.
+Other version os file (and - warning! - distributions supplied modified versions) may skip
+reporting of many file formats, which will hurt the results provided by huntbins.
+It was found that on some Linux distributions file is so crippled that it does not even
+say what partition type /dev/sda has, reporting only something blank useless "x86 boot sector" string.
+If maximum reporting is important task for you, then grab your best working file version and build it from source.
+
 Installation:
 
 Compile with: gcc huntbins.c -o huntbins -lmagic
