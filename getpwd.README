@@ -1,0 +1,5 @@
+getpwd asks user for a password, then prints it to stdout. No fuss.
+
+ENVIRONMENT
+
+GETPWD_PROMPT: when set, displays prompt string from this variable. Format specifiers are ignored.
