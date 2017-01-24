@@ -1,0 +1,4 @@
+Simple XOR scrambling tool.
+
+Written in a hurry to test pseudoencrypton mode in Linux kernel.
+Overwrites source file, so beware!
