@@ -1,0 +1,31 @@
+randquot -- micro fortune.
+
+randquot will select and emit a random quote from a file.
+
+layout of file is simple:
+
+{
+quote text
+multiline quote text
+
+	who said that ??
+};
+
+{
+another quote
+
+whoa, notice this line!
+
+	I do not know someone who says this.
+};
+
+...
+
+A line starting with '{' character indicates start of quote section.
+A line ending with two characters '}' followed by ';' indicates end of quote section.
+
+Comments start with '#', comment lines are included from quotes.
+
+Unfinished sections are reported as error and file is not parsed.
+
+This code was written in hurry, so it looks like hacky and unfinished.
