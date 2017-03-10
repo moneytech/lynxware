@@ -2,13 +2,22 @@ SRCS = $(wildcard *.c)
 PROGS = $(SRCS:.c=)
 override CFLAGS += -Wall -Os
 
+GTK2_CFLAGS:=`pkg-config --cflags gtk+-2.0`
+GTK2_LDFLAGS:=`pkg-config --libs gtk+-2.0`
+
+XFORMS_CFLAGS:=-I/local/include/freetype2
+XFORMS_LDFLAGS:=-lforms -lfreetype -L/local/X11/lib -Wl,-rpath-link -Wl,/local/X11/lib -lX11
+
 all: $(PROGS)
 
 %: %.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 gmsgbox: gmsgbox.c
-	$(CC) $(CFLAGS) `pkg-config --cflags gtk+-2.0` -o $@ $< `pkg-config --libs gtk+-2.0`
+	$(CC) $(CFLAGS) $(GTK2_CFLAGS) -o $@ $< $(GTK2_LDFLAGS)
+
+xmkhash: xmkhash.c
+	$(CC) $(CFLAGS) $(XFORMS_CFLAGS) -o $@ $< $(XFORMS_LDFLAGS) -lcrypt
 
 huntbins: huntbins.c
 	$(CC) $(CFLAGS) -o $@ $< -lmagic
