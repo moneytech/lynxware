@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 	int keyfd, infd, outfd, key = 0;
 	char *p, *q;
 
-	if (argc < 4) usage(NULL);
+	if (argc < 3) usage(NULL);
 
 	keyfd = open(*(argv+1), O_RDONLY);
 	if (keyfd == -1) {
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 	if (infd == -1) usage(*(argv+2));
 
 	outfd = open(*(argv+3), O_CREAT|O_WRONLY, 0666);
-	if (outfd == -1) usage(*(argv+3));
+	if (outfd == -1) outfd = 1;
 
 	errno = 0;
 	while (1) {
