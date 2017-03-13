@@ -19,13 +19,16 @@ static void usage(const char *fname)
 
 int main(int argc, char **argv)
 {
-	int keyfd, infd, outfd;
+	int keyfd, infd, outfd, key = 0;
 	char *p, *q;
 
 	if (argc < 4) usage(NULL);
 
 	keyfd = open(*(argv+1), O_RDONLY);
-	if (keyfd == -1) usage(*(argv+1));
+	if (keyfd == -1) {
+		key = atoi(*(argv+1));
+		if (key == 0) usage(*(argv+1));
+	}
 
 	infd = open(*(argv+2), O_RDONLY);
 	if (infd == -1) usage(*(argv+2));
@@ -38,18 +41,21 @@ int main(int argc, char **argv)
 		n = read(infd, dblk, sizeof(dblk));
 		if (!n) break;
 
-		kn = read(keyfd, kblk, sizeof(kblk));
-		if (kn < n) break;
+		if (key == 0) {
+			kn = read(keyfd, kblk, sizeof(kblk));
+			if (kn < n) break;
+		}
 
 		p = q = dblk;
 		while (q-p < n) {
-			*(q) ^= *(kblk+(q-p));
+			*(q) ^= key ? key : *(kblk+(q-p));
 			q++;
 		}
 
 		write(outfd, dblk, n);
 	}
 
+	key = 0;
 	memset(kblk, 0, sizeof(kblk));
 	memset(dblk, 0, sizeof(dblk));
 
