@@ -13,7 +13,7 @@ static size_t kn, n;
 static void usage(const char *fname)
 {
 	if (fname) fprintf(stderr, "error opening %s: %m\n", fname);
-	printf("usage: xor padfile infile outfile\n");
+	printf("usage: xor padfile/key infile [outfile]\n");
 	exit(1);
 }
 

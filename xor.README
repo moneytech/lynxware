@@ -1,4 +1,14 @@
 Simple XOR scrambling tool.
 
 Written in a hurry to test pseudoencrypton mode in Linux kernel.
-Overwrites source file, so beware!
+
+Usage: xor padfile/key infile [outfile]
+
+xor works in both otp or simple xor key mode.
+In otp (One Time Pad) mode it reads input keystream from separate padfile and
+xors it with plaintext given as infile, byte by byte.
+In key mode it reads infile and simply xors every byte with a constant
+given as key. This constant is digit which ranges from 0 to 255.
+
+If outfile is given, output is written to outfile. If not, output is sent to stdout.
+If one of files (padfile or infile) is shorter, result is undefined.
