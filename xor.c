@@ -7,42 +7,55 @@
 #include <fcntl.h>
 #include <errno.h>
 
-static char blk[4096];
-static size_t n, t;
+static char kblk[1024], dblk[1024];
+static size_t kn, n;
 
-static void usage(void)
+static void usage(const char *fname)
 {
-	printf("usage: xor file 67\n");
+	if (fname) fprintf(stderr, "error opening %s: %m\n", fname);
+	printf("usage: xor padfile infile outfile\n");
 	exit(1);
 }
 
 int main(int argc, char **argv)
 {
-	int fd;
-	int key;
+	int keyfd, infd, outfd;
 	char *p, *q;
 
-	if (argc < 3) usage();
+	if (argc < 4) usage(NULL);
 
-	key = atoi(*(argv+2));
+	keyfd = open(*(argv+1), O_RDONLY);
+	if (keyfd == -1) usage(*(argv+1));
 
-	fd = open(*(argv+1), O_RDWR);
-	if (fd == -1) return 1;
+	infd = open(*(argv+2), O_RDONLY);
+	if (infd == -1) usage(*(argv+2));
+
+	outfd = open(*(argv+3), O_CREAT|O_WRONLY, 0666);
+	if (outfd == -1) usage(*(argv+3));
 
 	errno = 0;
 	while (1) {
-		n = read(fd, blk, sizeof(blk));
-		if (!n) break; t += n;
-		p = q = blk;
+		n = read(infd, dblk, sizeof(dblk));
+		if (!n) break;
+
+		kn = read(keyfd, kblk, sizeof(kblk));
+		if (kn < n) break;
+
+		p = q = dblk;
 		while (q-p < n) {
-			*(q) ^= key;
+			*(q) ^= *(kblk+(q-p));
 			q++;
 		}
-		lseek(fd, t-n, SEEK_SET);
-		write(fd, blk, n);
+
+		write(outfd, dblk, n);
 	}
 
-	close(fd);
+	memset(kblk, 0, sizeof(kblk));
+	memset(dblk, 0, sizeof(dblk));
+
+	close(keyfd);
+	close(infd);
+	close(outfd);
 
 	return 0;
 }
