@@ -11,8 +11,9 @@ int main(int argc, char **argv)
 	d = atoll(*(argv+1));
 	y = atoll(*(argv+2));
 
-	for (x = 2; x < d; x++)
-		if (!(y % x)) printf("%lld\n", x);
+	for (x = 2; x <= d && x <= y; x++) {
+		if (!(d % x)) printf("%lld\n", x);
+	}
 
 	return 0;
 }
