@@ -1,0 +1,15 @@
+gitrel -- a shell script to make git versionless releases.
+
+gitrel makes releases out of git repositories, or emits unique version numbers.
+It uses git archive facility.
+
+For example:
+
+	gitrel -c -d ..
+
+makes release file named as "reponame-commitcount.12digitlasthash.tar.gz",
+with internal directory name similar to file name without a .tar.gz extension.
+A file is placed into .. directory (parent directory).
+A .tar.gz extension is a format name (default), which "git archive" accepts.
+
+More options to see: gitrel -h.

@@ -1,0 +1,110 @@
+#!/bin/sh
+# git release maker script.
+# By Lynx, 23Mar2017.
+
+_GIT_DESC_ARGS="--tags --always --abbrev=12"
+
+_usage()
+{
+	echo Usage: $0 -cCsFrN -d dir -n name -f fmt -t tag -v xver
+	echo
+	echo Makes a release out of git repository.
+	echo All cmdline arguments are optional.
+	echo
+	echo C: record version tag as commits count since beginning.
+	echo c: like -C, but append git describe after commit count.
+	echo d dir: do not put archive data to stdout,
+	echo export as file into directory specified.
+	echo s: do not prepend version tag or commit number.
+	echo F: force creating archive, even if git complains.
+	echo n name: rename repository inside created archive.
+	echo N: do not give a name at all \(useful with -rC just to count commits\).
+	echo f fmt: use this format \(must be supported by git archive\).
+	echo r: do not do anything, just print result version string.
+	echo t tag: archive this tag or commit or other git history pointer.
+	echo v xver: rename version inside created archive.
+	echo
+	echo Without arguments, creates archive in tar.gz format with
+	echo versioned directory and outputs it to stdout.
+	echo
+	exit 1
+}
+
+while getopts "cCd:n:Nf:Frst:v:" _opt; do
+	case "${_opt}" in
+		c) _count=2 ;;
+		C) _count=1 ;;
+		d) _dir="${OPTARG}" ;;
+		n) _name="${OPTARG}" ;;
+		N) _noname=1 ;;
+		f) _fmt="${OPTARG}" ;;
+		F) _force=1 ;;
+		r) _dryrun=1 ;;
+		s) _short=1 ;;
+		t) _tag="${OPTARG}" ;;
+		v) _xver="${OPTARG}" ;;
+		*) _usage ;;
+	esac
+done
+
+if [ ! -d .git -a -z "${_force}" ]; then
+	echo Not a git repository.
+	exit 1
+fi
+
+if [ -n "${_count}" ]; then
+	_verpfx="."
+else
+	_verpfx="-"
+fi
+
+_nnverpfx="-"
+
+if [ -z "${_name}" ]; then
+	_name="$(basename $(pwd))"
+fi
+
+if [ -n "${_noname}" ]; then
+	_name=""
+	_verpfx=""
+	_nnverpfx=""
+fi
+
+_ver="${_verpfx}$(git describe ${_GIT_DESC_ARGS})"
+
+if [ -z "${_fmt}" ]; then
+	_fmt=tar.gz
+fi
+
+if [ -z "${_tag}" ]; then
+	_tag=HEAD
+else
+	_xver="${_tag}"
+fi
+
+if [ -n "${_xver}" ]; then
+	_ver="${_verpfx}${_xver}"
+fi
+
+if [ -n "${_count}" ]; then
+	if [ "${_count}" -gt 1 ]; then
+		_ver="${_nnverpfx}$(git rev-list --count ${_tag})${_ver}"
+	else
+		_ver="${_nnverpfx}$(git rev-list --count ${_tag})"
+	fi
+fi
+
+if [ -n "${_short}" ]; then
+	_ver=""
+fi
+
+if [ -n "${_dryrun}" ]; then
+	echo "${_name}${_ver}"
+	exit 0
+fi
+
+if [ -n "${_dir}" ]; then
+	exec git archive --format "${_fmt}" --prefix "${_name}${_ver}"/ "${_tag}" >"${_dir}/${_name}${_ver}.${_fmt}"
+else
+	exec git archive --format "${_fmt}" --prefix "${_name}${_ver}"/ "${_tag}"
+fi
