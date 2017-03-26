@@ -28,5 +28,8 @@ zdiv: zdiv.c
 unclaws: unclaws.c
 	@echo See unclaws.README.
 
+fcorrupt: fcorrupt.c
+	@echo fcorrupt uses SANELINUX extensions.
+
 clean:
 	rm -f $(PROGS)

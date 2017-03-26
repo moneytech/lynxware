@@ -1,0 +1,18 @@
+fcorrupt program -- corrupt files intentionally.
+
+It corrupts files with zero or random data.
+Usage: fcorrupt FILE 0|R NM LEN, where:
+FILE is a file you wish to corrupt (operated in place),
+0|R: specify one: 0 for corruption with zeroed data, and R for corruption with random data,
+NM: number of corruptions to make (number),
+LEN: maximum length of corruption chunk (number).
+
+Operation principle:
+fcorrupt opens a FILE, obtains it's length, does random NM fseeks,
+gets a random number from 1 to LEN, uses it as a length of chunk to write,
+generates chunk with zero or random data of random length up to LEN,
+fwrites the chunk at fseek'ed pointer and continues up to NM fseeks.
+Then closes file.
+During process it reports status by writing to stdout.
+
+This program uses SANELINUX extensions. You have to port it yourself.
