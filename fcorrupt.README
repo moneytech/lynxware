@@ -1,9 +1,14 @@
 fcorrupt program -- corrupt files intentionally.
 
 It corrupts files with zero or random data.
-Usage: fcorrupt FILE 0|R NM LEN, where:
+
+Usage: fcorrupt FILE off 0-255|r|R NM LEN, where:
 FILE is a file you wish to corrupt (operated in place),
-0|R: specify one: 0 for corruption with zeroed data, and R for corruption with random data,
+off is offset from which to start corrupting a file
+0-255|r|R: specify one:
+	0-255 for corruption with single byte within a range,
+	r for corruption with random byte generated at each cycle,
+	and R for corruption with completely random data chunks,
 NM: number of corruptions to make (number),
 LEN: maximum length of corruption chunk (number).
 

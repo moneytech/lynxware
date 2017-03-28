@@ -22,11 +22,24 @@ static void xerror(const char *s)
 
 static ssize_t genbad(void *buf, size_t sz, int setting)
 {
-	if (setting == 0) {
-		memzero(buf, sz);
+	if (setting >= 0) {
+		memset(buf, setting, sz);
+	}
+	else if (setting == -1) {
+		setting = randrange(0, UCHAR_MAX);
+		memset(buf, setting, sz);
+	}
+	else if (setting == -2) {
+		size_t x;
+		unsigned char t[3], *ubuf = (unsigned char *)buf;
+
+		if (genrandom(t, sizeof(t)) == -1) return -1;
+		for (x = 0; x < sz; x += sizeof(t))
+			memcpy(ubuf+x, t, sizeof(t));
+		if (sz-x < sizeof(t)) memcpy(ubuf+x, t, sz-x);
 	}
 	else {
-		if (!genrandom(buf, sz)) return -1;
+		if (genrandom(buf, sz) == -1) return -1;
 	}
 	return sz;
 }
@@ -38,18 +51,23 @@ int main(int argc, char **argv)
 	size_t rndsz, max;
 	FILE *f;
 	struct stat st;
-	off_t rndoff;
+	off_t soff, rndoff;
 	int x;
 
-	/* fcorrupt file 0/R num max */
-	if (argc < 5) xerror("usage: fcorrupt FILE 0|R NM LEN");
+	if (argc < 6) xerror("usage: fcorrupt FILE off 0-255|r|R NM LEN");
 
 	f = fopen(*(argv+1), "r+");
 	if (!f) xerror(*(argv+1));
 
-	type = *(*(argv+2)) == '0' ? 0 : 1;
-	num = atoi(*(argv+3));
-	max = atol(*(argv+4));
+	soff = atoll(*(argv+2));
+
+	if (*(*(argv+3)) == 'r') type = -1;
+	else if (*(*(argv+3)) == 'C') type = -2;
+	else if (*(*(argv+3)) == 'R') type = -3;
+	else type = atoi(*(argv+3));
+	if (type > UCHAR_MAX) type = 255;
+	num = atoi(*(argv+4));
+	max = atol(*(argv+5));
 
 	bad = malloc(max);
 	if (!bad) xerror("malloc");
@@ -58,9 +76,10 @@ int main(int argc, char **argv)
 		xerror(*(argv+1));
 
 	for (x = 0; x < num; x++) {
-		rndsz = (size_t)randrange(1, (unsigned)max);
-		rndoff = (off_t)randrangel(0, (long long)st.st_size);
+again:		rndsz = (size_t)randrange(1, (unsigned)max);
+		rndoff = (off_t)randrangel((long long)soff, (long long)st.st_size);
 		rndoff -= rndsz;
+		if (rndoff < soff) goto again;
 		if (fseek(f, rndoff, SEEK_SET) == -1)
 			xerror("fseek");
 		if (genbad(bad, rndsz, type) == -1)
