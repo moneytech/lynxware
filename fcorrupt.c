@@ -47,12 +47,12 @@ int main(int argc, char **argv)
 	f = fopen(*(argv+1), "r+");
 	if (!f) xerror(*(argv+1));
 
-	bad = malloc(max);
-	if (!bad) xerror("malloc");
-
 	type = *(*(argv+2)) == '0' ? 0 : 1;
 	num = atoi(*(argv+3));
 	max = atol(*(argv+4));
+
+	bad = malloc(max);
+	if (!bad) xerror("malloc");
 
 	if (fstat(fileno(f), &st) == -1)
 		xerror(*(argv+1));
