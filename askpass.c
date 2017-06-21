@@ -99,42 +99,125 @@ _pw:
 	return 0;
 }
 
-/* musl! */
-void getpasswd(char *password, size_t pwdlen, const char *fmt, ...)
+#define GETP_NOECHO 1
+#define GETP_NOINTERP 2
+
+struct getpasswd_state;
+
+typedef int (*getpasswd_filt_t)(struct getpasswd_state *, int, size_t);
+
+struct getpasswd_state {
+	char *passwd;
+	size_t pwlen;
+	const char *echo;
+	int maskchar;
+	getpasswd_filt_t charfilter;
+	int fd;
+	int flags;
+};
+
+size_t s_getpasswd(struct getpasswd_state *getps)
 {
 	int fd;
+	int c, clear;
 	struct termios s, t;
-	ssize_t l;
+	size_t l;
+
+	if (!getps) return ((size_t)-1);
+
+	if (getps->fd == -1) {
+		if ((fd = open("/dev/tty", O_RDONLY|O_NOCTTY)) < 0) fd = 0;
+	}
+	else fd = getps->fd;
+
+	memset(&t, 0, sizeof(struct termios));
+	memset(&s, 0, sizeof(struct termios));
+	tcgetattr(fd, &t);
+	s = t;
+	cfmakeraw(&t);
+	t.c_iflag |= ICRNL;
+	tcsetattr(fd, TCSANOW, &t);
+
+	if (getps->echo) {
+		fputs(getps->echo, stderr);
+		fflush(stderr);
+	}
+
+	l = 0;
+	while (1) {
+		clear = 1;
+		c = 0;
+		if (read(fd, &c, sizeof(char)) == -1) break;
+		if (getps->charfilter) {
+			int x = getps->charfilter(getps, c, l);
+			if (x == 0) {
+				clear = 0;
+				goto _newl;
+			}
+			else if (x == 2) continue;
+			else if (x == 3) goto _erase;
+			else if (x == 4) goto _delete;
+			else if (x == 5) break;
+		}
+
+		if (c == '\x7f'
+		|| (c == '\x08' && !(getps->flags & GETP_NOINTERP))) { /* Backspace / ^H */
+_erase:			if (l == 0) continue;
+			clear = 0;
+			l--;
+			if (!(getps->flags & GETP_NOECHO)) fputs("\x08\e[1X", stderr);
+			fflush(stderr);
+		}
+		else if (!(getps->flags & GETP_NOINTERP)
+		&& (c == '\x15' || c == '\x17')) { /* ^U / ^W */
+_delete:		clear = 0;
+			l = 0;
+			memset(getps->passwd, 0, getps->pwlen);
+			fputs("\e[2K\e[0G", stderr);
+			if (getps->echo) fputs(getps->echo, stderr);
+			fflush(stderr);
+		}
+_newl:		if (c == '\n' || c == '\r' || (!(getps->flags & GETP_NOINTERP) && c == '\x04')) break;
+		if (clear) {
+			*(getps->passwd+l) = c;
+			l++;
+			if (!(getps->flags & GETP_NOECHO)) fputc(getps->maskchar, stderr);
+			fflush(stderr);
+		}
+		if (l >= getps->pwlen) break;
+	};
+
+	fputs("\r\n", stderr);
+	fflush(stderr);
+	*(getps->passwd+l) = 0;
+
+	tcsetattr(fd, TCSANOW, &s);
+
+	if (fd > 2 && getps->fd == -1) close(fd);
+
+	return l;
+}
+
+
+void getpasswd(char *password, size_t pwdlen, const char *fmt, ...)
+{
+	static char prompt[256];
+	struct getpasswd_state getps;
 	va_list ap;
 
 	va_start(ap, fmt);
 
-	if ((fd = open("/dev/tty", O_RDONLY|O_NOCTTY)) < 0) fd = 0;
+	memset(prompt, 0, sizeof(prompt));
+	vsnprintf(prompt, sizeof(prompt), fmt, ap);
 
-	tcgetattr(fd, &t);
-	svt = s = t;
-	t.c_lflag &= ~ECHO;
-	t.c_lflag |= ICANON;
-	t.c_iflag &= ~(INLCR|IGNCR);
-	t.c_iflag |= ICRNL;
-	tcsetattr(fd, TCSAFLUSH, &t);
-	tcdrain(fd);
+	memset(&getps, 0, sizeof(struct getpasswd_state));
+	getps.fd = -1;
+	getps.passwd = password;
+	getps.pwlen = pwdlen;
+	getps.echo = prompt;
+	getps.flags = GETP_NOECHO;
 
-	vfprintf(stderr, fmt, ap);
-	fflush(stderr);
-
-	l = read(fd, password, pwdlen);
-	if (l >= 0) {
-		if (l > 0 && password[l-1] == '\n') l--;
-		password[l] = 0;
-	}
-
-	fputc('\n', stderr);
-	fflush(stderr);
-
-	tcsetattr(fd, TCSAFLUSH, &s);
-
-	if (fd > 2) close(fd);
+	s_getpasswd(&getps);
 
 	va_end(ap);
 }
