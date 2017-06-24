@@ -210,7 +210,7 @@ _err:	fputs("\r\n", stderr);
 	return l;
 }
 
-void getpasswd(char *password, size_t pwdlen, const char *fmt, ...)
+void xgetpasswd(char *password, size_t pwdlen, const char *fmt, ...)
 {
 	static char prompt[256];
 	struct getpasswd_state getps;
@@ -255,7 +255,7 @@ int main(int argc, char **argv)
 	memset(pw, 0, sizeof(pw));
 	prompt = getenv("ASKPASS_PROMPT");
 	if (!prompt) prompt = "Password";
-	getpasswd(pw, sizeof(pw)-1, "%s:", prompt);
+	xgetpasswd(pw, sizeof(pw)-1, "%s:", prompt);
 
 	r = match_password(usr, pw) ? 0 : 1; /* shell true/false */
 	memset(pw, 0, sizeof(pw));
