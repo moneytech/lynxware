@@ -113,7 +113,7 @@ struct getpasswd_state {
 	char *passwd;
 	size_t pwlen;
 	const char *echo;
-	int maskchar;
+	char maskchar;
 	getpasswd_filt_t charfilter;
 	int fd;
 	int efd;
@@ -123,19 +123,11 @@ struct getpasswd_state {
 	size_t retn;
 };
 
-static inline size_t intlen(int chr)
-{
-	if (chr >> 24) return 4;
-	if (chr >> 16) return 3;
-	if (chr >> 8) return 2;
-	if (chr) return 1;
-	return 0;
-}
-
 size_t s_getpasswd(struct getpasswd_state *getps)
 {
+	char c;
 	int tty_opened = 0, x;
-	int c, clear;
+	int clear;
 	struct termios s, t;
 	size_t l, echolen = 0;
 
@@ -181,7 +173,6 @@ size_t s_getpasswd(struct getpasswd_state *getps)
 	memset(getps->passwd, 0, getps->pwlen);
 	while (1) {
 		clear = 1;
-		c = 0;
 		if (read(getps->fd, &c, sizeof(char)) == -1) {
 			getps->error = errno;
 			l = ((size_t)-1);
@@ -244,9 +235,9 @@ _newl:		if (c == '\n'
 			*(getps->passwd+l) = c;
 			l++;
 			if (!(getps->flags & GETP_NOECHO)) {
-				if (intlen(getps->maskchar) &&
+				if (getps->maskchar &&
 					write(getps->efd, &getps->maskchar,
-					intlen(getps->maskchar)) == -1) {
+					sizeof(char)) == -1) {
 						getps->error = errno;
 						l = ((size_t)-1);
 						goto _xerr;
