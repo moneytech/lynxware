@@ -11,19 +11,19 @@ XFORMS_LDFLAGS:=-lforms -lfreetype -L/local/X11/lib -Wl,-rpath-link -Wl,/local/X
 all: $(PROGS)
 
 %: %.c
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 gmsgbox: gmsgbox.c
-	$(CC) $(CFLAGS) $(GTK2_CFLAGS) -o $@ $< $(GTK2_LDFLAGS)
+	$(CC) $(CFLAGS) $(GTK2_CFLAGS) -o $@ $< $(GTK2_LDFLAGS) $(LDFLAGS)
 
 xmkhash: xmkhash.c
-	$(CC) $(CFLAGS) $(XFORMS_CFLAGS) -o $@ $< $(XFORMS_LDFLAGS) -lcrypt
+	$(CC) $(CFLAGS) $(XFORMS_CFLAGS) -o $@ $< $(XFORMS_LDFLAGS) $(LDFLAGS) -lcrypt
 
 huntbins: huntbins.c
-	$(CC) $(CFLAGS) -o $@ $< -lmagic
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) -lmagic
 
 zdiv: zdiv.c
-	$(CC) $(CFLAGS) -O2 -o $@ $<
+	$(CC) $(CFLAGS) -O2 -o $@ $< $(LDFLAGS)
 
 unclaws: unclaws.c
 	@echo See unclaws.README.
