@@ -55,6 +55,8 @@
 #include <errno.h>
 #include <limits.h>
 
+#include "xstrlcat.c"
+
 #define MAXDIRDEPTH 256
 #define TMPDIRTEMPL "/tmp/.huntbins.XXXXXX"
 /* for remove temporaries from /tmp code */
@@ -363,13 +365,13 @@ static int getmgcfiletype(magic_t cookie, const char *mgcpath,
 		char tmp[PATH_MAX] = {0};
 
 		strcpy(tmp, "can't load database ");
-		strncat(tmp, mgcpath, PATH_MAX - 20);
+		xstrlcat(tmp, mgcpath, PATH_MAX - 20);
 		xerror(tmp);
 	}
 
 	type = magic_file(cookie, file);
 
-	strncpy(output, type, len);
+	xstrlcpy(output, type, len);
 	return 1;
 }
 
@@ -517,7 +519,7 @@ _add:
 	if (quiet) { progret = 1; goto _ret; }
 	if (nindex) names = realloc(names, (nindex + 1) * sizeof(char *));
 	names[nindex] = malloc(strlen(name) + 1); memset(names[nindex], 0, strlen(name) + 1);
-	strncpy(names[nindex], name, strlen(name) + 1);
+	xstrlcpy(names[nindex], name, strlen(name) + 1);
 	nindex++;
 
 _ret:
@@ -583,7 +585,7 @@ _noopen:
 
 		what[0] = realloc(what[0], (sizeof(char *) * (i+1)));
 		what[0][i] = malloc(l); memset(what[0][i], 0, l);
-		strncpy(what[0][i], buf, l);
+		xstrlcpy(what[0][i], buf, l);
 	}
 
 	fclose(f);
@@ -601,7 +603,7 @@ _noopen:
 			what[0] = realloc(what[0], (sizeof(char *) * (i+1)));
 			what[0][i] = malloc(strlen(old[x]) + 1);
 			memset(what[0][i], 0, strlen(old[x]) + 1);
-			strncpy(what[0][i], old[x], strlen(old[x]));
+			xstrlcpy(what[0][i], old[x], strlen(old[x]));
 		}
 	}
 

@@ -6,6 +6,8 @@
 #include <sys/time.h>
 #include <gtk/gtk.h>
 
+#include "xstrlcpy.c"
+
 typedef void (*sighandler_t)(int);
 
 #define _s(x) (sizeof(x)/sizeof(*x))
@@ -74,7 +76,7 @@ int main(int argc, char **argv)
 					btns[btnsidx].str = malloc(l+1);
 					if (!btns[btnsidx].str) break;
 					memset(btns[btnsidx].str, 0, l+1);
-					strncpy(btns[btnsidx].str, p, l);
+					xstrlcpy(btns[btnsidx].str, p, l);
 					btns[btnsidx].id = -atoi(optarg);
 					btnsidx++;
 				}

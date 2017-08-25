@@ -1,4 +1,4 @@
-SRCS = $(wildcard *.c)
+SRCS = $(filter-out xstrlcat.c xstrlcpy.c, $(wildcard *.c))
 PROGS = $(SRCS:.c=)
 override CFLAGS += -Wall -Os
 

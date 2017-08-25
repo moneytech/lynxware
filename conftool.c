@@ -8,6 +8,8 @@
 #include <errno.h>
 #include <limits.h>
 
+#include "xstrlcat.c"
+
 #define CONFTOOL_BASE "/etc/conf"
 
 #define OPT_READ 1
@@ -95,8 +97,8 @@ int main(int argc, char **argv)
 		if (*(argv+optind+x)) {
 			while (*(argv+optind+x)) {
 				l += strlen(*(argv+optind+x));
-				strncat(B, *(argv+optind+x), sizeof(B)-1-l);
-				l++; strncat(B, " ", sizeof(B)-1-l);
+				xstrlcat(B, *(argv+optind+x), sizeof(B)-l);
+				l++; xstrlcat(B, " ", sizeof(B)-l);
 				x++;
 			}
 			*(B+l-1) = '\n';

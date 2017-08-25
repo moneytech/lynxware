@@ -5,6 +5,8 @@
 #include "base64.c"
 #include "passcrypt.c"
 
+#include "xstrlcpy.c"
+
 static char in[4096], out[sizeof(in)];
 static int encdec;
 
@@ -24,7 +26,7 @@ static char *unclaws(int mode, char *pwdout, const char *pwdin, size_t szpwdin)
 
 		*pwdout = '!'; p = pwdout; p++;
 		memset(t, 0, sizeof(t));
-		strncpy(t, pwdin, szpwdin);
+		xstrlcpy(t, pwdin, szpwdin);
 		passcrypt_encrypt(t, szpwdin);
 		base64_encode(p, t, szpwdin);
 	}
