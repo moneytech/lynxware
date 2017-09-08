@@ -3,12 +3,5 @@ strl - calculate string length from command line or stdin
 strl is like strlen() when called from shell.
 
 It will accurately compute given command line, counting argv borders as spaces and omitting
-not related argv elements (NULL and argv[0]). It will read stdin if there is no cmdline was given,
-will do strlen() in read string and it will omit supplied newline. For each read string it will
-output it's length, so it will not count all bytes like `wc -c` does.
-
-Limitations:
-Currently, strl reads into buffer of limited length (4096 bytes), so probably strings more than
-that length cannot be checked. Once needed, one can change size of that buffer. But it still
-will be finite. More clever but dangerous way is to use dynamic memory. I do not have a need in
-this not for this program, so let it be as is for now.
+not related argv elements (NULL and argv[0]). It will read stdin if there is no cmdline was given.
+For each read string it will print a string length without newline.
