@@ -1,0 +1,9 @@
+genuniq - unique random number set generator
+
+genuniq generates a set of random numbers which will contain only unique numbers.
+unique numbers maybe useful when shuffling a song list, rows in a document or
+a list of people's names and telephone numbers. It also can generate a single
+(unsigned) random number by specifying it's first parameter as 1.
+
+This tool is useful for smaller sets of numbers (smaller than 1000). For bigger
+sets the performance drops drastically, so do not abuse it.
