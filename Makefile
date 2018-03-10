@@ -1,6 +1,11 @@
 SRCS = $(filter-out xstrlcat.c xstrlcpy.c, $(wildcard *.c))
 PROGS = $(SRCS:.c=)
-override CFLAGS += -Wall -Os
+
+ifneq (,$(DEBUG))
+override CFLAGS+=-Wall -O0 -g
+else
+override CFLAGS+=-O2
+endif
 
 GTK2_CFLAGS:=`pkg-config --cflags gtk+-2.0`
 GTK2_LDFLAGS:=`pkg-config --libs gtk+-2.0`
@@ -10,7 +15,7 @@ XFORMS_LDFLAGS:=-lforms -lfreetype -L/local/X11/lib -Wl,-rpath-link -Wl,/local/X
 
 all: $(PROGS)
 
-%: %.c
+%.o: %.c
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 gmsgbox: gmsgbox.c
