@@ -1,0 +1,10 @@
+after - schedule a cmdline after a period of time.
+
+after will put itself into background, wait specified time and then it will run cmdline.
+
+Time specification can be a simple integer, floating point or it can specify time prefixes
+like 'm' for millisecond, 'u' for microsecond and 'n' for a nanosecond. Any trailing 's'
+are removed, since the time is assumed to be a second or it's fraction.
+
+No errors are emitted if running cmdline suddenly fails. However, if going to background
+was disabled, it will show the error as usual.
