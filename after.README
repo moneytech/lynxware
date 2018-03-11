@@ -2,9 +2,11 @@ after - schedule a cmdline after a period of time.
 
 after will put itself into background, wait specified time and then it will run cmdline.
 
-Time specification can be a simple integer, floating point or it can specify time prefixes
-like 'm' for millisecond, 'u' for microsecond and 'n' for a nanosecond. Any trailing 's'
-are removed, since the time is assumed to be a second or it's fraction.
+Time specification can be a simple integer or floating point, which specifies seconds.
+It can also specify time prefixes: "ms" for millisecond, "us" for microsecond,
+"ns" for a nanosecond; "m" for minute, "h" for hour, "d" for day.
+Complex specifiers like "1d5h" are NOT supported however.
+Trailing 's' character is required to differentiate minute from millisecond.
 
 No errors are emitted if running cmdline suddenly fails. However, if going to background
 was disabled, it will show the error as usual.
