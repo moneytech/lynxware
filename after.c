@@ -53,6 +53,7 @@ static af_nsecs nanotime_prefixed(const char *s, char **stoi)
 	char pfx[2] = {0};
 	char N[32];
 	size_t l;
+	int frac = 0;
 	af_nsecs ret;
 
 	if (!s) return 0;
@@ -64,13 +65,17 @@ _again:	*pfx = *(N+l-1);
 	if (*pfx == 's') {
 		*pfx = 0;
 		l--;
+		frac = 1;
 		goto _again;
 	}
 
 	*stoi = NULL;
-	if (*pfx == 'm') ret = UTONSECS(strtoull(N, stoi, 10)) / 1000;
-	else if (*pfx == 'u') ret = UTONSECS(strtoull(N, stoi, 10)) / 1000000;
-	else if (*pfx == 'n') ret = UTONSECS(strtoull(N, stoi, 10)) / 1000000000;
+	if (*pfx == 'm' && frac) ret = UTONSECS(strtoull(N, stoi, 10)) / 1000;
+	else if (*pfx == 'u' && frac) ret = UTONSECS(strtoull(N, stoi, 10)) / 1000000;
+	else if (*pfx == 'n' && frac) ret = UTONSECS(strtoull(N, stoi, 10)) / 1000000000;
+	else if (*pfx == 'm' && !frac) ret = DTONSECS(strtod(N, stoi)) * 60;
+	else if (*pfx == 'h' && !frac) ret = DTONSECS(strtod(N, stoi)) * 3600;
+	else if (*pfx == 'd' && !frac) ret = DTONSECS(strtod(N, stoi)) * 86400;
 	else ret = DTONSECS(strtod(N, stoi));
 
 	return ret;
