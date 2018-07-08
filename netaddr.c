@@ -25,25 +25,27 @@ static void usage(void)
 	printf("  -v: also print result\n");
 	printf("return codes are:\n");
 	printf("  0: ADDR is in SUBNET\n");
-	printf("  1: ADDR is NOT in SUBNET\n");
+	printf("  1: ADDR is 0T in SUBNET\n");
 	printf("  2: no or bogus data given\n");
 	printf("both IPv4 and IPv6 addresses are supported.\n");
 	exit(1);
 }
 
-static int addrtype(const char *addr)
+static int addr_type(const char *addr)
 {
 	if (strchr(addr, '.') && !strchr(addr, ':')) return AF_INET;
 	else if (strchr(addr, ':') && !strchr(addr, '.')) return AF_INET6;
 	return 0;
 }
 
-static int filladdr(const char *addr, struct netaddr *na)
+static int parse_addr(const char *addr, struct netaddr *na)
 {
 	int type;
 	char *s;
 
-	type = addrtype(addr);
+	memset(na, 0, sizeof(struct netaddr));
+
+	type = addr_type(addr);
 	if (!type) return 0;
 	na->type = type;
 
@@ -56,8 +58,7 @@ static int filladdr(const char *addr, struct netaddr *na)
 	if (s && *(s+1)) {
 		*s = 0; s++;
 		na->pfx = atoi(s);
-		if (na->pfx < 0) return 0;
-		else if (type == AF_INET && na->pfx > 32) return 0;
+		if (type == AF_INET && na->pfx > 32) return 0;
 		else if (type == AF_INET6 && na->pfx > 128) return 0;
 	}
 	else {
@@ -70,26 +71,26 @@ static int filladdr(const char *addr, struct netaddr *na)
 	return 1;
 }
 
-static int matchaddr(struct netaddr *n, struct netaddr *a)
+static int match_addr(const struct netaddr *n, const struct netaddr *a)
 {
 	int x, y;
 
-	if (n->type != a->type) return 2;
+	if (n->type != a->type) return 0;
 
 	if ((n->pmax - n->pfx) % 8) {
 		for (x = 0; x < (n->pfx/8); x++)
-			if (n->addr[x] != a->addr[x]) return 1;
+			if (n->addr[x] != a->addr[x]) return 0;
 		y = x;
 		for (x = (n->pmax - n->pfx) % 8; x < 8; x++) {
-			if ((n->addr[y] & (1 << x)) != (a->addr[y] & (1 << x))) return 1;
+			if ((n->addr[y] & (1 << x)) != (a->addr[y] & (1 << x))) return 0;
 		}
 	}
 	else {
 		for (x = 0; x < (n->pfx/8); x++)
-			if (n->addr[x] != a->addr[x]) return 1;
+			if (n->addr[x] != a->addr[x]) return 0;
 	}
 
-	return 0;
+	return 1;
 }
 
 int main(int argc, char **argv)
@@ -106,24 +107,14 @@ int main(int argc, char **argv)
 	}
 	if (!*(argv+optind) || !*(argv+optind+1)) usage();
 
-	memset(&net, 0, sizeof(struct netaddr));
-	memset(&addr, 0, sizeof(struct netaddr));
+	if (!parse_addr(*(argv+optind), &net)) return 2;
+	if (!parse_addr(*(argv+optind+1), &addr)) return 2;
 
-	if (!filladdr(*(argv+optind), &net)) goto _err;
-	if (!filladdr(*(argv+optind+1), &addr)) goto _err;
-
-	c = matchaddr(&net, &addr);
+	c = match_addr(&net, &addr);
 	if (verbose) {
-		if (c == 2) goto _err;
-		else {
-			if (net.pfx == net.pmax) printf("%s %s %s\n", addr.saddr, (c == 1) ? "!=" : "==", net.saddr);
-			else printf("%s %s %s/%u\n", addr.saddr, (c == 1) ? "!=" : "==", net.saddr, net.pfx);
-		}
+		if (net.pfx == net.pmax) printf("%s %s %s\n", addr.saddr, (c == 0) ? "!=" : "==", net.saddr);
+		else printf("%s %s %s/%u\n", addr.saddr, (c == 0) ? "!=" : "==", net.saddr, net.pfx);
 	}
 
-	return c;
-
-_err:
-	if (verbose) fputs("Error\n", stderr);
-	return 2;
+	return c == 1 ? 0 : 1;
 }

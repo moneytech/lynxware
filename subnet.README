@@ -1,0 +1,8 @@
+subnet - print exact subnet for address/prefix pair.
+
+this is a simple tool akin to netaddr, which just zeroes out bits-n-bytes inside
+binary address so that it will output a subnet that exactly matches subnet prefix.
+
+example: 127.255.255.255/21 gives 127.255.248.0
+
+The tool, like netaddr, works with IPv6 too.
