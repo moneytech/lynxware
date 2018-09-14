@@ -21,9 +21,6 @@ all: $(PROGS)
 gmsgbox: gmsgbox.c
 	$(CC) $(CFLAGS) $(GTK2_CFLAGS) -o $@ $< $(GTK2_LDFLAGS) $(LDFLAGS)
 
-xmkhash: xmkhash.c
-	$(CC) $(CFLAGS) $(XFORMS_CFLAGS) -o $@ $< $(XFORMS_LDFLAGS) $(LDFLAGS) -lcrypt
-
 huntbins: huntbins.c
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) -lmagic
 
