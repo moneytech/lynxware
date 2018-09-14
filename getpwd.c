@@ -8,75 +8,47 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <termios.h>
-#include <signal.h>
 
-typedef void (*sighandler_t)(int);
+#include "getpasswd.c"
 
-static struct termios svt;
+#define CSTR(s) (sizeof(s)-1)
+#define NOSIZE ((size_t)-1)
 
-static void sighandl(int unused)
+static int getps_filter(struct getpasswd_state *getps, char chr, size_t pos)
 {
-	tcsetattr(0, TCSAFLUSH, &svt);
-	exit(3);
-}
-
-/* musl! */
-void getpasswd(char *password, size_t pwdlen, const char *fmt, ...)
-{
-	int fd;
-	struct termios s, t;
-	ssize_t l;
-	va_list ap;
-
-	va_start(ap, fmt);
-
-	if ((fd = open("/dev/tty", O_RDONLY|O_NOCTTY)) < 0) fd = 0;
-
-	tcgetattr(fd, &t);
-	svt = s = t;
-	t.c_lflag &= ~ECHO;
-	t.c_lflag |= ICANON;
-	t.c_iflag &= ~(INLCR|IGNCR);
-	t.c_iflag |= ICRNL;
-	tcsetattr(fd, TCSAFLUSH, &t);
-	tcdrain(fd);
-
-	vfprintf(stderr, fmt, ap);
-	fflush(stderr);
-
-	l = read(fd, password, pwdlen);
-	if (l >= 0) {
-		if (l > 0 && password[l-1] == '\n') l--;
-		password[l] = 0;
+	if (chr == '\x03') { /* ^C */
+		getps->retn = ((size_t)-2);
+		return 6;
 	}
-
-	fputc('\n', stderr);
-	fflush(stderr);
-
-	tcsetattr(fd, TCSAFLUSH, &s);
-
-	if (fd > 2) close(fd);
-
-	va_end(ap);
+	return 1;
 }
+
+static char passwd[256];
+static char *prompt;
+static struct getpasswd_state getps;
 
 int main(int argc, char **argv)
 {
-	char *prompt;
-	char pw[256];
-	int x;
+	size_t x;
 
-	for (x = 1; x < NSIG; x++) signal(x, sighandl);
-
-	memset(pw, 0, sizeof(pw));
 	prompt = getenv("GETPWD_PROMPT");
-	if (!prompt) prompt = "Password";
-	getpasswd(pw, sizeof(pw)-1, "%s:", prompt);
+	if (!prompt) prompt = "Password:";
 
-	printf("%s\n", pw);
+	memset(&getps, 0, sizeof(struct getpasswd_state));
+	getps.fd = getps.efd = -1;
+	getps.passwd = passwd;
+	getps.pwlen = sizeof(passwd);
+	getps.echo = prompt;
+	getps.charfilter = getps_filter;
+	getps.maskchar = 'x';
+	x = xgetpasswd(&getps);
+	if (x == NOSIZE) return 2;
+	if (x == ((size_t)-2)) return 1;
 
-	memset(pw, 0, sizeof(pw));
+	write(1, passwd, strlen(passwd));
+	write(1, "\n", CSTR("\n"));
+
+	memset(passwd, 0, sizeof(passwd));
 
 	return 0;
 }
