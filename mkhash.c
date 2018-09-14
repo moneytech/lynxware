@@ -11,94 +11,82 @@
 #include <termios.h>
 #include <fcntl.h>
 
-#define SALTLEN 32
-#define PASSLEN 256
+#include "getpasswd.c"
 
-/* Thanks to musl for this code */
-static void getpasswd(char *password, const char *echo, int pwdlen)
+#define CSTR(s) (sizeof(s)-1)
+#define NOSIZE ((size_t)-1)
+
+static char passwd[256];
+static char salt[32], *psalt;
+static char *hash;
+static struct getpasswd_state getps;
+
+static int getps_filter(struct getpasswd_state *getps, char chr, size_t pos)
 {
-	int fd;
-	struct termios s, t;
-	ssize_t l;
-
-	if ((fd = open("/dev/tty", O_RDONLY|O_NOCTTY)) < 0) fd = 0;
-
-	tcgetattr(fd, &t);
-	s = t;
-	t.c_lflag &= ~ECHO;
-	t.c_lflag |= ICANON;
-	t.c_iflag &= ~(INLCR|IGNCR);
-	t.c_iflag |= ICRNL;
-	tcsetattr(fd, TCSAFLUSH, &t);
-	tcdrain(fd);
-
-	fputs(echo, stderr);
-	fflush(stderr);
-
-	l = read(fd, password, pwdlen);
-	if (l >= 0) {
-		if (l > 0 && password[l-1] == '\n') l--;
-		password[l] = 0;
+	if (chr == '\x03') { /* ^C */
+		getps->retn = ((size_t)-2);
+		return 6;
 	}
-
-	fputc('\n', stderr);
-	fflush(stderr);
-
-	tcsetattr(fd, TCSAFLUSH, &s);
-
-	if (fd > 2) close(fd);
+	return 1;
 }
 
-static void getstring(char *out, const char *echo, int len)
+static inline int isctrlchr(int c)
 {
-	int fd;
-	ssize_t l;
+	if (c == 9) return 0;
+	if (c >= 0 && c <= 31) return 1;
+	if (c == 127) return 1;
+	return 0;
+}
 
-	fputs(echo, stderr);
-	fflush(stderr);
+static int getps_plain_filter(struct getpasswd_state *getps, char chr, size_t pos)
+{
+	int x;
 
-	if ((fd = open("/dev/tty", O_RDONLY|O_NOCTTY)) < 0) fd = 0;
+	x = getps_filter(getps, chr, pos);
+	if (x != 1) return x;
 
-	l = read(fd, out, len);
-	if (l >= 0) {
-		if (l > 0 && out[l-1] == '\n') l--;
-		out[l] = 0;
-	}
-
-	if (fd > 2) close(fd);
+	if (pos < getps->pwlen && !isctrlchr(chr))
+		write(getps->efd, &chr, sizeof(char));
+	return 1;
 }
 
 int main(int argc, char **argv)
 {
-	char salt[SALTLEN] = {0};
-	char pass[PASSLEN] = {0};
-	char *hash;
-	size_t l;
+	size_t x;
 
-	if (*(argv+1) && !strcmp(*(argv+1), "-R")) {
-		printf("Enter salt:");
-		fflush(stdout);
-		l = read(0, salt, SALTLEN);
-		salt[l] = 0;
-		printf("Enter password:");
-		fflush(stdout);
-		l = read(0, pass, PASSLEN);
-		pass[l] = 0;
+	if (argc < 2) {
+		memset(&getps, 0, sizeof(struct getpasswd_state));
+
+		getps.fd = getps.efd = -1;
+		getps.passwd = passwd;
+		getps.pwlen = sizeof(passwd);
+		getps.echo = "Password:";
+		getps.charfilter = getps_filter;
+		getps.maskchar = 'x';
+		x = xgetpasswd(&getps);
+
+		getps.fd = getps.efd = -1;
+		getps.passwd = salt;
+		getps.pwlen = sizeof(salt);
+		getps.echo = "Salt:";
+		getps.charfilter = getps_plain_filter;
+		getps.maskchar = 0;
+		x = xgetpasswd(&getps);
+		if (x == NOSIZE) return 2;
+		if (x == ((size_t)-2)) return 1;
+		psalt = salt;
 	}
 	else {
-		getstring(salt, "Enter salt:", SALTLEN);
-		getpasswd(pass, "Enter password:", PASSLEN);
+		if (read(0, passwd, CSTR(passwd)) == -1) return 2;
+		psalt = *(argv+1);
 	}
 
-	hash = crypt(pass, salt);
-	if (!hash) goto _err;
-	fprintf(stdout, "%s\n", hash);
+	hash = crypt(passwd, psalt);
+	memset(passwd, 0, sizeof(passwd));
+	if (!hash) return 1;
 
-	memset(pass, 0, sizeof(pass));
-	memset(salt, 0, sizeof(salt));
+	write(1, hash, strlen(hash));
+	write(1, "\n", CSTR("\n"));
 
 	return 0;
-
-_err:
-	return 1;
 }

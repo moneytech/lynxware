@@ -1,4 +1,4 @@
-SRCS = $(filter-out xstrlcat.c xstrlcpy.c, $(wildcard *.c))
+SRCS = $(filter-out xstrlcat.c xstrlcpy.c getpasswd.c, $(wildcard *.c))
 PROGS = $(SRCS:.c=)
 
 ifneq (,$(DEBUG))

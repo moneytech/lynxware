@@ -4,5 +4,5 @@ mkhash will ask you for a salt and password.
 Then just print a result of crypt(3) over them.
 No sanity checks performed.
 
-If crypt(3) will return an error, mkhash will not indicate it.
-It's a very simple program.
+If you will specify salt as it's first argument, then it will read
+the password from stdin instead of safely asking it from you.
