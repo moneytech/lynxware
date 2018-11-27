@@ -1,67 +1,124 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <errno.h>
 
-static char kblk[1024], dblk[1024];
-static size_t kn, n;
+#define NOSIZE ((size_t)-1)
 
-static void usage(const char *fname)
+#define DATASIZE 65536
+
+static char ublkx[DATASIZE];
+static char ublky[DATASIZE];
+static size_t *sblkx = (size_t *)ublkx;
+static size_t *sblky = (size_t *)ublky;
+
+static void usage(void)
 {
-	if (fname) fprintf(stderr, "error opening %s: %m\n", fname);
-	printf("usage: xor padfile/key infile [outfile]\n");
-	exit(1);
+	puts("usage: xor FILEX FILEY [RESULT]");
+	puts("XOR contents of FILEX into FILEY,");
+	puts("then write result to stdout.");
+	puts("If RESULT is given as a file name,");
+	puts("then write result to that file instead.");
+	exit(0);
 }
+
+static void xerror(const char *s)
+{
+	if (s) perror(s);
+	exit(2);
+}
+
+static int will_exit;
 
 int main(int argc, char **argv)
 {
-	int keyfd, infd, outfd, key = 0;
-	char *p, *q;
+	int ifdx, ifdy, ofd, pfd;
+	char *pblk;
+	char *infnamex, *infnamey, *onfname;
+	size_t lio, lrem, ldone, lblock, ldata;
+	size_t shft, z, x;
 
-	if (argc < 3) usage(NULL);
+	if (argc < 3) usage();
+	infnamex = argv[1];
+	infnamey = argv[2];
+	if (argc >= 4) onfname = argv[3];
+	else onfname = "-";
 
-	keyfd = open(*(argv+1), O_RDONLY);
-	if (keyfd == -1) {
-		key = atoi(*(argv+1));
-		if (key == 0) usage(*(argv+1));
+	if (!strcmp(infnamex, "-")) ifdx = 0;
+	else {
+		ifdx = open(infnamex, O_RDONLY);
+		if (ifdx == -1) xerror(infnamex);
+	}
+	if (!strcmp(infnamey, "-")) ifdy = 0;
+	else {
+		ifdy = open(infnamey, O_RDONLY);
+		if (ifdy == -1) xerror(infnamey);
+	}
+	if (!strcmp(onfname, "-")) ofd = 1;
+	else {
+		ofd = creat(onfname, 0666);
+		if (ofd == -1) xerror(onfname);
 	}
 
-	infd = open(*(argv+2), O_RDONLY);
-	if (infd == -1) usage(*(argv+2));
+	switch (sizeof(size_t)) {
+		case 2: shft = 1; break;
+		case 4: shft = 2; break;
+		case 8: shft = 3; break;
+		default: xerror(NULL); break;
+	}
 
-	outfd = open(*(argv+3), O_CREAT|O_WRONLY, 0666);
-	if (outfd == -1) outfd = 1;
-
-	errno = 0;
+	will_exit = 0;
+	ldata = DATASIZE;
 	while (1) {
-		n = read(infd, dblk, sizeof(dblk));
-		if (!n) break;
-
-		if (key == 0) {
-			kn = read(keyfd, kblk, sizeof(kblk));
-			if (kn < n) break;
+		if (will_exit) break;
+		pfd = ifdx;
+		pblk = ublkx;
+_nextblk:	ldone = 0;
+		lrem = lblock = ldata;
+_ragain:	lio = read(pfd, pblk, lrem);
+		if (lio == 0) will_exit = 1;
+		if (lio != NOSIZE) ldone += lio;
+		else xerror(infnamex);
+		if (lio && lio < lrem) {
+			pblk += lio;
+			lrem -= lio;
+			goto _ragain;
 		}
 
-		p = q = dblk;
-		while (q-p < n) {
-			*(q) ^= key ? key : *(kblk+(q-p));
-			q++;
+		if (pfd != ifdy) {
+			if (will_exit) ldata = ldone;
+			pfd = ifdy;
+			pblk = ublky;
+			goto _nextblk;
 		}
 
-		write(outfd, dblk, n);
+		sblkx = (size_t *)ublkx;
+		sblky = (size_t *)ublky;
+		for (z = 0; z < (ldone >> shft); z++) sblkx[z] ^= sblky[z];
+		if (ldone - (z << shft)) for (x = (z << shft); x < ldone; x++) ublkx[x] ^= ublky[x];
+
+		pblk = ublkx;
+		lrem = ldone;
+		ldone = 0;
+_wagain:	lio = write(ofd, pblk, lrem);
+		if (lio != NOSIZE) ldone += lio;
+		else xerror(onfname);
+		if (lio < lrem) {
+			pblk += lio;
+			lrem -= lio;
+			goto _wagain;
+		}
 	}
 
-	key = 0;
-	memset(kblk, 0, sizeof(kblk));
-	memset(dblk, 0, sizeof(dblk));
-
-	close(keyfd);
-	close(infd);
-	close(outfd);
+	memset(ublkx, 0, DATASIZE);
+	memset(ublky, 0, DATASIZE);
+	close(ifdx);
+	close(ifdy);
+	close(ofd);
 
 	return 0;
 }
