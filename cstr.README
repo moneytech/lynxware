@@ -1,0 +1,6 @@
+cstr -- convert a file into a C string for inclusion into C source code.
+
+cstr reads a file and produces a C string hexdump to stdout. Multiple files
+may be given, each will be prefixed with the C pointer variable declaration.
+By default, it does line break after printing each 16 bytes.
+If "-" is given as a file, or no files are given, reads standard input.

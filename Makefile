@@ -15,5 +15,8 @@ all: $(PROGS)
 huntbins: huntbins.c
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) -lmagic
 
+mkhash: mkhash.c
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) -lcrypt
+
 clean:
 	rm -f $(PROGS)

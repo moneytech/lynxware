@@ -1,0 +1,10 @@
+hexs - just convert input byte stream to hex string
+
+Examples:
+
+% printf 'Example stream: \x7f\x99\x34' | ./hexs
+4578616d706c652073747265616d3a207f9934
+% ./hexs ./hexs
+7f454c460101010000000000000000000200030001000000778804083400000084200000000000003400200009002800 ...
+
+(...'s actually are not output of hexs, but I'm showing that it's too much to fit here)
